@@ -7,8 +7,8 @@ decide to publish. Work through it in order.
 
 ## Before anything else: the secret
 
-`.env` contains a live Groq API key. If it reaches GitHub — even in a commit
-that is later deleted — treat the key as compromised and rotate it, because
+`.env` contains a live Groq API key. If it reaches GitHub, even in a commit
+that is later deleted, treat the key as compromised and rotate it, because
 GitHub retains unreferenced objects and bots scrape public repos within minutes.
 
 The repository is already set up to prevent this:
@@ -56,11 +56,11 @@ of the fixed seed.
 One judgement call: `work/runs/*/` holds the full agent transcripts, and those
 are genuinely interesting evidence. They are inside the ignored `work/`
 directory. If you want them public, copy the ones you care about into
-`results/transcripts/` before committing — they are small JSON files.
+`results/transcripts/` before committing, they are small JSON files.
 
 ---
 
-## Step 1 — Initialise
+## Step 1, Initialise
 
 ```bash
 cd ~/Anto/PIPEBREAK
@@ -74,7 +74,7 @@ branch, because GitHub expects `main` and older Git versions still create
 
 ---
 
-## Step 2 — Confirm what is about to be committed
+## Step 2, Confirm what is about to be committed
 
 This is the step people skip and regret.
 
@@ -83,14 +83,14 @@ git add -A
 git status --short
 ```
 
-Read the list. It should be roughly 40–60 files. If you see `.env`, `.venv/`,
+Read the list. It should be roughly 40 to 60 files. If you see `.env`, `.venv/`
 `work/`, or `node_modules/`, unstage everything and fix `.gitignore` first:
 
 ```bash
 git reset          # unstages, changes no files on disk
 ```
 
-A useful extra check — search the staged content for anything resembling a key:
+A useful extra check, search the staged content for anything resembling a key:
 
 ```bash
 git diff --cached | grep -n "gsk_" || echo "clean: no Groq key in staged content"
@@ -98,7 +98,7 @@ git diff --cached | grep -n "gsk_" || echo "clean: no Groq key in staged content
 
 ---
 
-## Step 3 — First commit
+## Step 3, First commit
 
 ```bash
 git -c user.name="Anthony Breeganzo Thomas" \
@@ -117,13 +117,13 @@ git config user.email "anthonybreeganzo02@gmail.com"
 
 ---
 
-## Step 4 — Create the empty remote repository
+## Step 4, Create the empty remote repository
 
 On <https://github.com/new>:
 
 - **Name:** `pipebreak`
 - **Description:** *A benchmark measuring whether AI agents know when not to fix a data pipeline.*
-- **Visibility:** Public — the whole point is that someone can read it
+- **Visibility:** Public, the whole point is that someone can read it
 - **Do not** tick "Add a README", "Add .gitignore" or "Choose a licence"
 
 That last point matters. Initialising the remote with files creates a commit
@@ -132,7 +132,7 @@ non-fast-forward. Starting empty avoids the problem entirely.
 
 ---
 
-## Step 5 — Connect and push
+## Step 5, Connect and push
 
 ```bash
 git remote add origin https://github.com/<your-username>/pipebreak.git
@@ -155,27 +155,27 @@ git config --global credential.helper osxkeychain
 
 ---
 
-## Step 6 — Check the result in the browser
+## Step 6, Check the result in the browser
 
 - The README renders, and the Mermaid diagrams in `docs/HLD.md` display as
   diagrams rather than code blocks. GitHub renders Mermaid natively; if a
-  diagram shows as text, the fence language is wrong — it must be ` ```mermaid `.
+  diagram shows as text, the fence language is wrong, it must be ` ```mermaid `.
 - `.env` is **not** in the file list.
 - The repository is a few hundred kilobytes, not hundreds of megabytes. If it is
   large, something under `work/` slipped through.
 
 ---
 
-## Step 7 — Make the front page do its job
+## Step 7, Make the front page do its job
 
-Add repository topics: `benchmark`, `llm-evaluation`, `ai-safety`,
+Add repository topics: `benchmark`, `llm-evaluation`, `ai-safety`
 `data-engineering`, `duckdb`, `agents`.
 
 Set the "About" description to the same one-liner as above. Most people decide
 whether to read a repository from that sentence and the first screen of the
 README.
 
-Consider adding a screenshot of the dashboard near the top of the README — a
+Consider adding a screenshot of the dashboard near the top of the README, a
 working UI is far more persuasive than a description of one:
 
 ```markdown
@@ -203,7 +203,7 @@ Do these in order, and do the first one first:
    anything else. Removing a file from history does not help if the key is
    already scraped.
 2. Issue a new key and put it in your local `.env`.
-3. Only then worry about rewriting history — with `git filter-repo`, or by
+3. Only then worry about rewriting history, with `git filter-repo`, or by
    deleting the repository and starting a fresh one if it is young.
 
 Removing the file and committing the removal is **not** sufficient. The old blob
@@ -214,7 +214,7 @@ stays reachable in the repository's history.
 ## Suggested repository description
 
 > A benchmark measuring whether AI agents know when **not** to fix a data
-> pipeline. 16 planted incidents in a synthetic warehouse — 12 repairable, 4
-> impossible to repair honestly. Agents are scored on detection, repair fidelity,
+> pipeline. 16 planted incidents in a synthetic warehouse, 12 repairable, 4
+> impossible to repair honestly. Agents are scored on detection, repair fidelity
 > blast radius, and judgment. An agent that "fixes" all 16 scores worse than one
 > that fixes 12 and escalates 4.

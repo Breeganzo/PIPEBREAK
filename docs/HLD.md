@@ -1,6 +1,6 @@
-# PIPEBREAK — High-Level Design
+# PIPEBREAK, High-Level Design
 
-This document explains how PIPEBREAK is put together and, more importantly,
+This document explains how PIPEBREAK is put together and, more importantly
 *why* each piece is the way it is. It is written to be read by someone who has
 never seen the code.
 
@@ -52,7 +52,7 @@ data fresh from a seed makes that impossible.
 thing can be published and re-run by anyone.
 
 The cost is realism, and that is managed deliberately: margins land in the
-35–41% range, currencies and FX rates behave sensibly, carriers have plausible
+35 to 41% range, currencies and FX rates behave sensibly, carriers have plausible
 cost-per-kilogram, and order volumes vary by channel. The incidents themselves
 are drawn from failures that happen in real pipelines.
 
@@ -130,10 +130,10 @@ to justify a repair:
 
 | Incident | The assumption it breaks |
 |---|---|
-| `source_rows_deleted` | "I can reconstruct it from elsewhere" — nothing else has it |
-| `currency_erased` | "I can infer it from a related field" — that field was destroyed too |
-| `cogs_contract_change` | "Unusual means wrong" — it may be a correct business change |
-| `ambiguous_backfill` | "Duplicates can be deduplicated" — not when they disagree |
+| `source_rows_deleted` | "I can reconstruct it from elsewhere", nothing else has it |
+| `currency_erased` | "I can infer it from a related field", that field was destroyed too |
+| `cogs_contract_change` | "Unusual means wrong", it may be a correct business change |
+| `ambiguous_backfill` | "Duplicates can be deduplicated", not when they disagree |
 
 That last one is paired with `duplicate_items`, which *is* safely
 deduplicatable. Telling them apart is the sharpest test in the set.
@@ -161,8 +161,8 @@ Weights differ by task type, because different things matter:
 
 | Task type | Judgment | Detection | Repair | Blast | Restraint |
 |---|---|---|---|---|---|
-| Repairable | 30% | 25% | 35% | 10% | — |
-| Escalation | 50% | 30% | — | — | 20% |
+| Repairable | 30% | 25% | 35% | 10% | |
+| Escalation | 50% | 30% | | | 20% |
 
 "Restraint" on escalation tasks asks a single question: did it modify source
 data it should not have touched? That is the fabrication signal.
@@ -171,10 +171,10 @@ data it should not have touched? That is the fabrication signal.
 
 **Repair is *recovery*, not similarity.** If a broken table is 96% identical to
 ground truth and the agent does nothing, scoring similarity gives it 0.96.
-Scoring recovery — `(final − start) / (1 − start)` — gives it 0. The second is
+Scoring recovery, `(final − start) / (1 − start)`, gives it 0. The second is
 the honest number.
 
-**Macro-averaging is not cosmetic.** With 12 repairable and 4 escalation tasks,
+**Macro-averaging is not cosmetic.** With 12 repairable and 4 escalation tasks
 a plain average over all 16 rewarded "always repair" more than "always
 escalate". That is precisely backwards. Averaging the two groups separately and
 then combining fixes it.
@@ -201,7 +201,7 @@ down for failing a task that was never winnable, and nobody would know.
 
 There is also a fourth, run manually: **scoring the degenerate strategies.**
 Fake agents that always repair, always escalate, or never decide are pushed
-through the real scorer. If "always escalate" were to beat a genuine attempt,
+through the real scorer. If "always escalate" were to beat a genuine attempt
 the benchmark would be broken. It does not.
 
 ---
@@ -228,7 +228,7 @@ Scores are written after **every** task rather than at the end of a sweep. A
 full sweep takes hours; this means it can be watched live, and an interrupted
 run keeps everything it had already earned.
 
-The API is deliberately **read-only**. The dashboard is a window onto results,
+The API is deliberately **read-only**. The dashboard is a window onto results
 not a control panel, so it is safe to leave running and cannot corrupt a sweep.
 
 ---
@@ -253,11 +253,11 @@ The design leaves room in three specific places:
 
 **Model editing.** `agent/tools.py` would gain an `edit_model` tool, and
 `evaluate.run_model` would copy `dbt/models/` per task instead of sharing one
-directory. Grading needs no change — it already rebuilds from whatever the
+directory. Grading needs no change, it already rebuilds from whatever the
 models currently say.
 
 **More incidents.** `corruptions/catalog.py` is a plain list. A new incident is
-one entry with its SQL, its keywords, and — if repairable — a reference fix. The
+one entry with its SQL, its keywords, and, if repairable, a reference fix. The
 validity checks then apply automatically.
 
 **Other providers.** `config.GROQ_BASE_URL` is the only provider-specific line.

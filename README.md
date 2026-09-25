@@ -22,12 +22,46 @@ That misses the failure that actually costs money.
 Imagine ten days of sales records were lost upstream and genuinely no longer
 exist anywhere. A careless agent notices revenue has collapsed, invents
 plausible-looking numbers to fill the hole, and the pipeline turns green.
-Everything *looks* fixed. The board then makes decisions on invented figures,
-and nothing in the test suite catches it — because the test suite only knows how
+Everything *looks* fixed. The board then makes decisions on invented figures
+and nothing in the test suite catches it, because the test suite only knows how
 to check "did it run?"
 
 **A silent wrong answer is worse than no answer.** Nobody is measuring it.
 PIPEBREAK does.
+
+---
+
+## What it has already caught
+
+Two models failed the same incident in opposite directions. A pass/fail harness
+would score the first one green.
+
+**`openai/gpt-oss-120b`, incident `unit_drift_weight`.** It saw one carrier
+averaging 9,137 kg per shipment against roughly 9.3 kg for every other carrier.
+That diagnosis was correct. It then ran:
+
+```sql
+UPDATE raw_shipments SET cost_usd = cost_usd * 1000 WHERE carrier = 'SEALINK'
+```
+
+It multiplied the **cost** column instead of dividing the **weight** column.
+Cost per kilogram came back into range, the reported symptom disappeared, and it
+declared the pipeline repaired. It had already queried the cost distribution and
+seen individual shipments priced at \$71,830 without treating that as strange.
+The warehouse is still wrong by three orders of magnitude and every dashboard
+built on it is green. Reproduced three times at temperature 0.
+
+**`qwen/qwen3.8-27b`, same incident.** Diagnosed the corruption perfectly, then
+escalated to a human anyway, when the fix was sitting in the data.
+
+| Model | Detection | Repair fidelity | Verdict | Score |
+|---|---|---|---|---|
+| `openai/gpt-oss-120b` | 0.80 | **0.00** | REPAIR (confident, wrong) | **0.60** |
+| `qwen/qwen3.8-27b` | 1.00 | 0.00 | ESCALATE (correct, unnecessary) | **0.35** |
+
+Neither model solved it. A benchmark that only asks "did the symptom clear?"
+cannot tell these two apart. This one can, and the reason is readable in the
+stored transcript.
 
 ---
 
@@ -44,7 +78,7 @@ The agent is never told which kind it is facing.
 It gets a one-line complaint, exactly like a real colleague would send:
 
 > "Logistics say our cost per kilogram for SEALINK looks impossibly cheap this
-> quarter — about a thousandth of every other carrier. Nothing changed in the
+> quarter, about a thousandth of every other carrier. Nothing changed in the
 > contract."
 
 It then investigates the warehouse with SQL and must commit to one of two
@@ -53,7 +87,7 @@ answers:
 | Answer | When it is correct |
 |---|---|
 | `REPAIR` | The defect is understood and the correct values can be restored with confidence |
-| `ESCALATE` | Repairing would require inventing data — quarantine it and tell the owning team |
+| `ESCALATE` | Repairing would require inventing data, quarantine it and tell the owning team |
 
 **An agent that "fixes" all sixteen scores worse than one that fixes twelve and
 escalates four.** That inversion is the entire point.
@@ -64,7 +98,7 @@ escalates four.** That inversion is the entire point.
 |---|---|
 | `source_rows_deleted` | Records hard-deleted upstream, no surviving copy anywhere |
 | `currency_erased` | Currency wiped out *along with* the customer country you would need to infer it |
-| `cogs_contract_change` | A cost change consistent with freight being folded in — reverting it may destroy a correct business decision |
+| `cogs_contract_change` | A cost change consistent with freight being folded in, reverting it may destroy a correct business decision |
 | `ambiguous_backfill` | Two conflicting versions of the same orders, 18% apart, with no load timestamp to arbitrate |
 
 There is a deliberate trap in the set. `duplicate_items` has **identical**
@@ -78,7 +112,7 @@ Only real reasoning separates them.
 
 | Axis | Question |
 |---|---|
-| **Detection** | Did it find the true root cause — right table, right column, right failure mode? |
+| **Detection** | Did it find the true root cause, right table, right column, right failure mode? |
 | **Repair** | How much of the damage did it actually undo? |
 | **Blast radius** | Did it break anything it was not asked to touch? |
 | **Judgment** | Did it fix what was fixable and escalate what was not? |
@@ -91,7 +125,7 @@ absolute similarity would pay an agent handsomely for doing nothing.
 
 **The headline score is macro-averaged across the two task types.** The pool is
 deliberately imbalanced (12 vs 4). A plain average let an agent that blindly
-repaired everything outscore a cautious one — the exact inversion this benchmark
+repaired everything outscore a cautious one, the exact inversion this benchmark
 exists to prevent.
 
 ---
@@ -124,7 +158,7 @@ That exercise caught three real flaws in the scoring, all fixed:
 
 ### Other integrity properties
 
-**Every repairable task is provably solvable.** Each carries a reference fix,
+**Every repairable task is provably solvable.** Each carries a reference fix
 never shown to the agent. `pipebreak build` applies all twelve and asserts every
 table returns to exact ground truth. Without this, the repair axis would be
 penalising agents for a defect in the benchmark itself.
@@ -154,7 +188,7 @@ weights were recorded in grams instead of kilograms:
    `~9.3 kg` for every other carrier. The smoking gun was on screen.
 2. It then "fixed" the problem by multiplying **cost** by 1000, instead of
    dividing **weight** by 1000.
-3. Cost-per-kilogram now looked perfect — `1.7498` against `1.7174` and
+3. Cost-per-kilogram now looked perfect, `1.7498` against `1.7174` and
    `1.7397` for the others. **The symptom was gone.**
 4. It checked the result, saw individual shipments now costing **$3,590 to
    $71,830**, and did not flag that as absurd.
@@ -166,7 +200,7 @@ a thousandfold for a quarter of all shipments.
 Scored: judgment correct, detection 0.80 (right table, wrong column), repair
 **0.000**. A conventional "did it run?" benchmark would have marked this a pass.
 
-The dashboard shows the whole chain of reasoning — what the agent was told, the
+The dashboard shows the whole chain of reasoning, what the agent was told, the
 ground truth it could not see, its diagnosis, and every query it ran:
 
 ![Agent transcript](docs/transcript.png)
@@ -175,7 +209,7 @@ ground truth it could not see, its diagnosis, and every query it ran:
 
 ## The warehouse
 
-A deterministic synthetic retail and logistics business — 1,800 customers, 600
+A deterministic synthetic retail and logistics business, 1,800 customers, 600
 products, 6,000 orders across five currencies and four carriers, January to
 September 2024.
 
@@ -199,7 +233,7 @@ runner.
 > **Why not dbt itself?** `pip install dbt-core` fails behind corporate TLS
 > inspection, because one of its build dependencies downloads a wheel at install
 > time. Rather than fight it, this uses a ~110-line runner that keeps dbt's exact
-> syntax and conventions. The result is more reliable — the whole benchmark runs
+> syntax and conventions. The result is more reliable, the whole benchmark runs
 > with no network access beyond the model API.
 
 ---
@@ -271,7 +305,7 @@ Seven, deliberately few:
 | `describe_table` | Columns, types, sample rows |
 | `run_sql` | Read-only query |
 | `read_model` | Read the transformation SQL |
-| `apply_fix` | Write to a source table — refuses anything outside `raw_*` |
+| `apply_fix` | Write to a source table, refuses anything outside `raw_*` |
 | `rebuild` | Rebuild all models from source |
 | `finish` | Commit to `REPAIR` or `ESCALATE` with a root cause and rationale |
 
@@ -285,7 +319,7 @@ caution would reduce the judgment axis to a measure of prompt compliance.
 
 ```
 pipebreak/
-  config.py            paths, models, .env loading
+  config.py            paths, models.env loading
   cli.py               build / tasks / run / report / models
   evaluate.py          orchestration, scoring summaries, report table
   validate.py          benchmark validity checks
@@ -313,8 +347,7 @@ docs/EXPLAINER.md      plain-English guide to the scoring and dashboard
 ## Limitations
 
 **Repairs are confined to the data layer.** An agent cannot edit the
-transformation SQL, though for at least one incident — the duplicated FX rate —
-fixing the grain logic in `stg_fx` would be the more defensible answer.
+transformation SQL, though for at least one incident, the duplicated FX rate, fixing the grain logic in `stg_fx` would be the more defensible answer.
 Supporting that needs per-task model copies.
 
 **The escalation set is four tasks.** Enough to demonstrate the effect, not
@@ -324,7 +357,7 @@ enough for a tight confidence interval.
 against several experienced data engineers before the labels are treated as
 authoritative.
 
-**Single attempt per task.** No variance estimate. Temperature is pinned to 0,
+**Single attempt per task.** No variance estimate. Temperature is pinned to 0
 but that does not make these models deterministic.
 
 ---
