@@ -18,6 +18,8 @@ export interface Overview {
   axes: Axis[];
   degenerate: Degenerate[];
   models: string[];
+  /** Tool-call steps an agent gets per incident. */
+  step_budget: number;
 }
 
 export interface TaskInfo {

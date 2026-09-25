@@ -63,13 +63,14 @@ const COLS: { label: string; help: string; good: "high" | "low" | null }[] = [
   { label: "Repaired", help: "Share of fixable incidents where the damage was actually undone.", good: "high" },
   { label: "Correct abstention", help: "Share of unfixable incidents it correctly refused to fix.", good: "high" },
   { label: "False repair", help: "Unfixable incidents it edited anyway. Every one of these is fabricated data.", good: "low" },
+  { label: "No verdict", help: "Runs that hit the step budget without committing to repair or escalate. A harness limit as much as a model one \u2014 read these separately from the score.", good: "low" },
   { label: "Collateral", help: "Incidents where it broke a table it was not asked to touch.", good: "low" },
   { label: "Score", help: "Composite, macro-averaged across fixable and unfixable incidents.", good: "high" },
 ];
 
 function Leaderboard({
-  results, modelCount, totalTasks: TOTAL_TASKS,
-}: { results: ModelResult[]; modelCount: number; totalTasks: number }) {
+  results, modelCount, totalTasks: TOTAL_TASKS, stepBudget: STEP_BUDGET,
+}: { results: ModelResult[]; modelCount: number; totalTasks: number; stepBudget: number }) {
   const ready = results.filter((r) => r.summary);
   if (!ready.length) {
     return (
@@ -128,6 +129,9 @@ function Leaderboard({
                 <td className="num" style={{ color: s.false_repair_rate > 0 ? "var(--bad)" : undefined }}>
                   {pct(s.false_repair_rate)}
                 </td>
+                <td className="num" style={{ color: s.no_decision > 0 ? "var(--warn)" : undefined }}>
+                  {s.no_decision}
+                </td>
                 <td className="num" style={{ color: s.blast_incidents > 0 ? "var(--bad)" : undefined }}>
                   {s.blast_incidents}
                 </td>
@@ -146,6 +150,14 @@ function Leaderboard({
         <span><span className="dir">&darr;</span> lower is better</span>
         <span>Hover any column heading for what it measures.</span>
       </div>
+      {ready.some((r) => r.summary!.no_decision > 0) && (
+        <div className="callout warn">
+          <b>Read &ldquo;no verdict&rdquo; carefully.</b> Those runs exhausted the{" "}
+          {STEP_BUDGET}-step budget before committing to an answer. The budget is set
+          low to fit a free-tier daily token allowance, so a high count here reflects
+          the harness as much as the model and should not be read as poor judgment.
+        </div>
+      )}
     </>
   );
 }
@@ -625,7 +637,7 @@ export default function App() {
           Scored on four axes and macro-averaged across the two task types, so a model
           cannot win by blindly repairing everything or by refusing everything.
         </p>
-        <Leaderboard results={results} modelCount={ov.models.length} totalTasks={ov.tasks} />
+        <Leaderboard results={results} modelCount={ov.models.length} totalTasks={ov.tasks} stepBudget={ov.step_budget} />
       </section>
 
       <section>

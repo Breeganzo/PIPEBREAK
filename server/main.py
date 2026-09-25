@@ -77,6 +77,7 @@ def overview() -> dict:
         "axes": AXES,
         "degenerate": DEGENERATE,
         "models": config.model_list(),
+        "step_budget": config.MAX_AGENT_STEPS,
     }
 
 

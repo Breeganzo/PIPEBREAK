@@ -295,6 +295,13 @@ Stated plainly, because a benchmark that oversells itself is not useful.
 - **Four escalation tasks is a small sample.** Enough to demonstrate the effect,
   not enough for a tight confidence interval on the abstention rate.
 - **One attempt per task, at temperature 0.** No variance estimate yet.
+- **The 14-step budget is tight, and it shows.** The limit was chosen to fit a
+  free-tier daily token allowance rather than for any research reason, and in
+  early runs a substantial share of attempts reach it without committing to a
+  verdict. Those are reported in a separate *no verdict* column rather than
+  folded silently into the score, because a run that ran out of budget is not
+  the same finding as a run that decided badly. Raising the budget is the first
+  change to make once token allowance is not the binding constraint.
 - **Repairs are limited to raw tables.** Some incidents are more defensibly fixed
   in the SQL layer, which the current tool surface does not allow.
 - **Synthetic data.** Realistic in structure and failure mode, but not a
