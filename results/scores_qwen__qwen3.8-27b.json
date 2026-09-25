@@ -1,0 +1,22 @@
+[
+  {
+    "task_id": "unit_drift_weight",
+    "model": "qwen/qwen3.8-27b",
+    "family": "unit drift",
+    "expected_action": "REPAIR",
+    "action": "ESCALATE",
+    "judgment": 0.0,
+    "detection": 1.0,
+    "detection_table": 1.0,
+    "detection_column": 1.0,
+    "detection_mode": 1.0,
+    "repair": 0.0,
+    "repair_exact": false,
+    "blast": 1.0,
+    "blast_worsened": [],
+    "restraint": null,
+    "composite": 0.35,
+    "wrote_data": false,
+    "error": ""
+  }
+]
